@@ -1,0 +1,149 @@
+.database {
+	max-width: 600px;
+}
+
+.database_record {
+/*	border: 1px dotted #999;*/
+	margin: 0;
+	padding: 0;
+	position: relative;
+	width: 100%;
+}
+
+.database_record table {
+	border: none;
+    border-spacing: 10px;
+    border-collapse: separate;
+}
+
+.database_record table tr td {
+	vertical-align: top;
+}
+
+.db_function {
+	font-weight: bold;
+	display: inline;
+}
+
+.db_data {
+	float: left;
+	margin-left: 10px;
+	margin-bottom: 10px;
+}
+
+.db_thumb {
+	width: 100px;
+	float: right;
+	margin-bottom: 10px;
+}
+
+.db_thumb {
+	width: 100px;
+	float: right;
+	margin-bottom: 10px;
+}
+
+.db_nummer {
+	font-size: 80%;
+	font-weight: normal;
+	font-style: italic;
+}
+
+.db_list {
+	list-style: none;
+	position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+.db_label {
+	text-align: left;
+	margin-left: 10px;
+	font-weight: 500;
+	position: absolute;
+}
+
+.db_value {
+	position: relative;
+	left: 180px;
+	width: 420px;
+}
+
+.db_edit {
+	position: relative;
+}
+
+.db_legend {
+	font-size: 70%;
+	text-align: right;
+	margin-right: 5px;
+}
+
+.db_edit_hover {
+	cursor: pointer;
+}
+
+.db_edit_hover:hover {
+	border: 1px dashed #808080;
+}
+
+ul.database_record {
+	display: inline-block;
+}
+
+
+.db_list td,th {
+	padding: 3px;
+	border: 1px solid #999;
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+
+.db_list th {
+	border-bottom: 3px solid #999;
+}
+
+/*@media (max-width: 600px) {
+
+	.db_data {
+		left: 10px;
+		float: none;
+		width: 200px;
+	}
+
+	.db_label {
+		text-align: left;
+		font-weight: 500;
+		float: left;
+	}
+
+	.db_value {
+		margin-left: 10px;
+	}
+
+}*/
+
+@media (max-width: 600px) {
+
+	.db_thumb {
+		width: 80px;
+		float: none;
+	}
+
+	.db_list {
+		position: static;
+	}
+
+	.db_label {
+		text-align: left;
+		margin-left: 5px;
+		font-weight: 500;
+		position: static;
+	}
+
+	.db_value {
+		margin-left: 30px;
+		position: static;
+	}
+
+}

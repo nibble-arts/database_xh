@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>DATABASE_XH - Anleitung</title>
+<link rel="stylesheet" type="text/css" href="./stylesheet.css">
+</head>
+
+<body>
+
+<article>
+<h1>DATABASE_XH – Anleitung</h1>
+
+<p>Das Plugin dient dazu eine MySQL-Datenbank in CMSimple-XH-Seiten einzubinden. Auf einer Seite können beliebig viele Aufrufe plaziert werden. Im Aufruf des Pugins werden zwei Parameter übergeben, die den eigentlichen Aufruf und die Formatierung der Daten steuern.</p>
+
+<nav id="nav">
+<h2>Inhalt</h2>
+<ul>
+<!--<li><a href="#notice">Important Notice</a></li>-->
+<li><a href="#queries">MySQL Queries</a></li>
+<li><a href="#templates">Templates</a></li>
+<li><a href="#filters">Filters</a></li>
+<li><a href="#usage">Anwendung</a></li>
+</ul>
+</nav>
+
+<section id="queries">
+	<h2>query</h2>
+	<p>Als query kann entweder ein valider MySQL-String übergeben werden, oder der Name einer gespeicherten Query. Die gespeicherten Abfragen sind im Verzeichnig \queries\ des Plugins abgelegt.</p>
+</section>
+
+<section id="templates">
+	<h2>template</h2>
+	<p>Das Template ist eine html Datei, die bestimmt, wie die Datenbank-Daten angezeigt werden. Es wird mit dem Namen ohne Endung angesprochen. Der HTML-Code muss einen umschließenden Tag besitzen.</p>
+
+	<p>Die Feldinhalte werden mit dem Feldnamen zwischen geschwiffelte Klammern eingesetzt. Der Bereich zwischen [startList] und [endList] wird bei mehrfachen Datensätzen wiederholt.</p>
+
+	<p class="tplvoe_code">
+	&lt;div id="database"&gt;<br>[startList]<br>&lt;div id="record"&gt;{vorname} {name}&lt;br&gt;{addresse}&lt;/div&gt;<br>[endList]<br>&lt;/div&gt;
+	</p>
+</section>
+
+<section id="filters">
+	<h4>filter</h4>;
+	<p>Der Filter-Wert ist optional.</p>
+
+	<p>Als Filter kann ein gültiger WHERE und ORDER BY Ausdruck angegeben werden. In diesem Fall dürfen weder WHERE noch ORDER BY vorkommen.</p>
+
+</section>
+</article>
+
+</body>
+
+</html>
