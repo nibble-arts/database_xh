@@ -1,0 +1,1 @@
+select name,nummer,internet from actor

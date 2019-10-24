@@ -1,8 +1,6 @@
 # get film, author and klub informations
 SELECT
-    film.titel,
-    film.laufzeit,
-    film.entstehung,
+    film.*,
     aspect.display as aspect,
     aspect.width,
     aspect.height,
@@ -23,3 +21,4 @@ LEFT JOIN aspect ON film.aspect = aspect.id
 LEFT JOIN actor AS klub
 ON
     film.klub=klub.id
+WHERE film.id={dbid}

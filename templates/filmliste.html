@@ -1,23 +1,29 @@
 <div>
-	<table class="db_list">
+	<table class="db_list db_small">
 		<tr>
+			<th>#</th>
 			<th>Titel</th>
 			<th>Autor</th>
 			<th>Jahr</th>
 			<th>Laufzeit</th>
 			<th>Format</th>
 			<th>Filmklub</th>
+			<th>Anmerkung</th>
+			<th>Standort</th>
 		</tr>
 
 	[startList]
 		<tr>
-			<td>{titel}</td>
-			<td>{vorname} {name}</td>
+			<td>{invnr}</td>
+			<td><strong>{titel}</strong></td>
+			<td>{impVorname} {impName}</td>
 			<td>{year:entstehung}</td>
-			<td>{laufzeit} Minuten</td>
+			<td>[{laufzeit} min]</td>
 			<td>{aspect}</td>
-			[<td>{klub} (Region {region})</td>]
+			<td>{klub}[ (Region {region})]</td>
+			<td>{anmerkung}</td>
+			<td>{location}</td>
 		</tr>
-	</table>
 	[endList]
+	</table>
 </div>

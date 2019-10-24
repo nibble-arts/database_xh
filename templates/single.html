@@ -1,0 +1,50 @@
+<div class="database">
+
+	[startList]
+	
+	<hr>
+	
+	<ul class="database_record" id="Klub_{nummer}">
+
+		<li class="db_list">
+			<img  class="db_thumb" src="userfiles/images/Logos/{foto}" alt = "">
+		</li>
+
+		<li class="db_list">
+			<div class="db_function"><span id="{id}" field="name">{name}</span><span class="db_nummer"> (Klubnummer {nummer})</span></div>
+		</li>
+
+		[<li class="db_list">
+			<div class="db_label">{leitertitel} {leitervorname} {leitername}</div>
+			<div class="db_value"> </div>
+		</li>]
+
+		[<li class="db_list">
+			<div class="db_label">Telefon</div>
+			<div class="db_value">{tel}</div>
+		</li>]
+
+		[<li class="db_list">
+			<div class="db_label">Mobil</div>
+			<div class="db_value">{mobil}</div>
+		</li>]
+
+		[<li class="db_list">
+			<div class="db_label">Email</div>
+			<div class="db_value"><a href="mailto:{email}">{email}</a></div>
+		</li>]
+
+		[<li class="db_list">
+			<div class="db_label">Internet</div>
+			<div class="db_value"><a href="{internet}" target="_blank">Internetseite</a></div>
+		</li>]
+
+		[<li class="db_list">
+			<div class="db_label">Klubabende</div>
+			<div class="db_value">{beschreibung}</div>
+		</li>]
+
+	</ul>
+	[endList]
+<div style="clear:both"></div>
+</div>

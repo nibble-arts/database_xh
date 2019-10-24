@@ -1,12 +1,25 @@
 SELECT
     actor.*,
-    function.display AS function,
-    function.hierarchy AS hierarchy,
-    function.vorstand AS vorstand,
-	job.target AS leiterregion,
-    land.name AS land
+    role.display AS role,
+    role.hierarchy AS hierarchy,
+    land.name AS land,
+    target.name as target,
+    actor.region as leiterregion
 FROM
     actor
-LEFT JOIN job ON actor.id = job.actor
-LEFT JOIN function ON job.function = function.id
-LEFT JOIN land ON actor.land = land.id
+LEFT JOIN
+    activity
+ON
+    actor.id = activity.actor
+LEFT JOIN
+    actor AS target
+ON
+    target.id = activity.target
+LEFT JOIN
+    role
+ON
+    activity.role = role.id
+LEFT JOIN
+    land
+ON
+    actor.land = land.id

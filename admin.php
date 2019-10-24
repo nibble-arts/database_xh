@@ -21,6 +21,7 @@ if (!defined('CMSIMPLE_XH_VERSION')) {
 
 define (DATABASE_BASE, $pth["folder"]["plugin"]);
 
+
 /*
  * Register the plugin menu items.
  */
@@ -50,11 +51,12 @@ if (function_exists('database')
         case 'plugin_main':
             include_once(DATABASE_BASE."settings.php");
 
-            $o .= database_settings($action, $admin, $plugin);
+            database_settings($action, $admin, $plugin);
             break;
 
 	    default:
-	        $o .= plugin_admin_common($action, $admin, $plugin);
+	        plugin_admin_common($action, $admin, $plugin);
+            break;
     }
 
 }

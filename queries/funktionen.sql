@@ -1,0 +1,1 @@
+select role.id, role.display as name from role order by role.display

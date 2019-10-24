@@ -1,16 +1,24 @@
 SELECT
-
-actor.*,
-job.*,
-leiter.titel as leitertitel,
-leiter.name as leitername,
-leiter.vorname as leitervorname,
-leiter.email as leiteremail,
-leiter.tel as leitertel,
-land.name as land
-
-from actor
-
-left join job on actor.id=job.target and job.function=20
-left join actor as leiter on job.actor=leiter.id
-left join land on actor.land=land.id
+    actor.*,
+    activity.*,
+    leiter.id AS leiterid,
+    leiter.titel AS leitertitel,
+    leiter.name AS leitername,
+    leiter.vorname AS leitervorname,
+    leiter.email AS leiteremail,
+    leiter.tel AS leitertel,
+    land.name AS land
+FROM
+    actor
+LEFT JOIN
+    activity
+ON
+    actor.id = activity.target AND activity.role = 20
+LEFT JOIN
+    actor AS leiter
+ON
+    activity.actor = leiter.id
+LEFT JOIN
+    land
+ON
+    actor.land = land.id

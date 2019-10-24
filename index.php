@@ -1,8 +1,10 @@
 <?php
+
 /*if (!defined('CMSIMPLE_VERSION') || preg_match('#/database/index.php#i',$_SERVER['SCRIPT_NAME'])) 
 {
     die('no direct access');
 }*/
+
 
 define("DATABASE_SERVER",$plugin_cf["database"]["database_server"]);
 define("DATABASE_USER",$plugin_cf["database"]["database_user"]);
@@ -10,21 +12,42 @@ define("DATABASE_PASSWORD",$plugin_cf["database"]["database_password"]);
 define("DATABASE_NAME",$plugin_cf["database"]["database_name"]);
 define("DATABASE_EDIT_ATTR",$plugin_cf["database"]["edit_attribute"]);
 
+define("DATABASE_EDIT_LEVEL",$plugin_cf["database"]["edit_accesslevel"]);
 
-define("DATABASE_ROOT", $pth["folder"]["plugin"]);
+define("DATABASE_BASE", $pth["folder"]["plugin"]);
+define("DATABASE_ROOT",$pth['folder']['base']);
 
 define("DATABASE_NOTEMPLATE", $plugin_tx["database"]["fail_notemplate"]);
 define("DATABASE_NOQUERY", $plugin_tx["database"]["fail_noquery"]);
 define("DATABASE_DBFAIL", $plugin_tx["database"]["fail_database"]);
+define("DATABASE_QUERYFAIL", $plugin_tx["database"]["fail_query"]);
+
+
+include_once(DATABASE_BASE."database.php");
+
+
+// check for ajax activity
+if ($admin == "database_save") {
+    $o .= database_save($action, $admin, $plugin, $_REQUEST);
+    exit();
+}
+
 
 
 // plugin to access a mysql database
 
-function database($query, $template, $filter="") {
+function database($query="", $template="", $filter="") {
 
-	global $database, $_SESSION, $onload;
-	
+	global $get, $admin, $action, $database, $_SESSION, $onload, $sn, $su, $f;
 
+
+	if (class_exists("ma\Access")) {
+		ma\Access::user();
+	}
+
+
+	$accesslevel = 0;
+	$ret = "";
 
 	// check for reserved words
 	switch ($query) {
@@ -32,19 +55,38 @@ function database($query, $template, $filter="") {
 		// init database editing
 		case "edit":
 
+			// get accesslevel
+			if (isset($_SESSION["accesslevel"])) $accesslevel = $_SESSION["accesslevel"];
+
+			// if access, start js
+			if ($accesslevel >= DATABASE_EDIT_LEVEL) {
+
+				// return script include
+				$ret .= '<script type="text/javascript" src="' . DATABASE_BASE . 'script/edit.js"></script>';
+
+				// add to onload
+				$onload .= "database.init('" . CMSIMPLE_URL . "', '" . DATABASE_EDIT_ATTR . "');";
+			}
+			break;
+
+		case "select":
+
 			// return script include
-			$ret .= '<script type="text/javascript" src="' . DATABASE_ROOT . 'script/edit.js"></script>';
+			$ret .= '<script type="text/javascript" src="' . DATABASE_BASE . 'script/select.js"></script>';
 
 			// add to onload
-			$onload .= "database_init_edit('" . DATABASE_EDIT_ATTR . "');";
+			$onload .= "select.init('" . CMSIMPLE_URL . "', '" . DATABASE_EDIT_ATTR . "');";
+
+
 			break;
 
 
 		// execute query and parse template
 		default:
+
 			// check if template is defined
-			if (file_exists(DATABASE_ROOT . "templates/" . $template . ".html")) {
-				$template = file_get_contents(DATABASE_ROOT . "templates/" . $template . ".html");
+			if (file_exists(DATABASE_BASE . "templates/" . $template . ".html")) {
+				$template = file_get_contents(DATABASE_BASE . "templates/" . $template . ".html");
 			}
 
 			// template not found error
@@ -54,8 +96,8 @@ function database($query, $template, $filter="") {
 			}
 
 			// check if query is defined
-			if (file_exists(DATABASE_ROOT . "queries/" . $query . ".sql")) {
-				$query = file_get_contents(DATABASE_ROOT . "queries/" . $query . ".sql");
+			if (file_exists(DATABASE_BASE . "queries/" . $query . ".sql")) {
+				$query = file_get_contents(DATABASE_BASE . "queries/" . $query . ".sql");
 			}
 
 			// no file and no select query
@@ -66,37 +108,93 @@ function database($query, $template, $filter="") {
 
 			//================================
 			// add filter if present
+// TODO add filter to existing where string of query
+
+
+
+
+
+
 			if ($filter) {
 				$query .= " ".$filter;
 			}
 
 
 			//================================
-			// get database data
-			$result = database_query($query);
-			
-			if ($result) {
+			// add parameters from $_GET in template
+			preg_match_all("$\{([^\}]+)\}$", $template, $matches);
 
-				//================================
-				// get header/loop/footer sections
-				$templateArray = database_parse_loop($template);
+			foreach ($matches[1] as $id=>$param) {
 
-
-				// output header
-				$ret .= $templateArray["header"];
-
-				// iterate results
-
-				while ($record = $result->fetch_assoc()) {
-					$ret .= database_parse_fields($templateArray["loop"], $record);
+				if (isset($_GET[$param])) {
+					$template = str_replace($matches[0][$id], $_GET[$param], $template);
 				}
 			}
-			else {
-				$ret .= '<div class="xh_fail">' . str_replace("%s", DATABASE_NAME, DATABASE_DBFAIL) . '</div>';
+
+
+			//================================
+			// add parameters from $_GET in query
+			preg_match_all("$\{([^\}]+)\}$", $query, $matches);
+
+			foreach ($matches[1] as $id=>$param) {
+
+				if (isset($_GET[$param])) {
+					$query = str_replace($matches[0][$id], $_GET[$param], $query);
+				}
+
+				else {
+					$query = str_replace($matches[0][$id], "''", $query);
+				}
 			}
 
-			// output footer
-			$ret .= $templateArray["footer"];
+/*debug($query);
+debug($template);
+*/
+
+			//================================
+			// get database data
+			$error = database_mysql_query($query, $result);
+
+			// sql error
+			if ($error) {
+				$ret .= '<div class="xh_fail">' . str_replace("%s", $error, DATABASE_QUERYFAIL) . '</div>';
+			}
+
+
+			// parse result
+			else {
+
+				if ($result) {
+
+					$structure = [];
+
+					database_parse_template($template, $structure);
+
+//debug(array_reverse($structure), false, "html");
+//die();
+
+
+					//================================
+					// get header/loop/footer sections
+					$templateArray = database_parse_loop($template);
+
+
+					// output header
+					$ret .= $templateArray["header"];
+
+					// iterate results
+
+					while ($record = $result->fetch_assoc()) {
+						$ret .= database_parse_fields($templateArray["loop"], $record);
+					}
+				}
+				else {
+//					$ret .= '<div class="xh_fail">' . str_replace("%s", DATABASE_NAME, DATABASE_DBFAIL) . '</div>';
+				}
+
+				// output footer
+				$ret .= $templateArray["footer"];
+			}
 
 			break;
 	}
@@ -105,25 +203,80 @@ function database($query, $template, $filter="") {
 }
 
 
-// send query and return result
-function database_query($query) {
 
-	$db = new mysqli(DATABASE_SERVER,DATABASE_USER,DATABASE_PASSWORD,DATABASE_NAME);
+function database_parse_template($template, array &$res, $type = "") {
 
-	if ($db) {
-		$db->set_charset("utf8");
+	$part = new Part();
+	$part->parse($template);
 
-		$result = $db->query($query);
+	$pre = $part->pre();
+	$mid = "";
+	$post = "";
 
-		$db->close();
+	if (!$type) $type = "content";
 
-		return $result;
+	if ($part->type()) {
+		database_parse_template($part->post(), $res, $part->type());
 	}
-	else
-		return false;
+
+	array_push($res, ["content"=>$part->pre(), "type"=>$type]);
 }
 
 
+class Part {
+
+	var $pre = "";
+	var $post = "";
+	var $type = "";
+
+	public function __construct($string = "") {
+
+		if ($string != "") {
+			return $this->parse($string);
+		}
+	}
+
+	// parse string
+	// false if nothing done
+	// true if split
+	public function parse($string) {
+
+		preg_match("$\[([a-zA-Z]+)\]$", $string, $matches,PREG_OFFSET_CAPTURE);
+
+		// if matches -> split up
+		if (count($matches)) {
+			$this->pre = trim(substr($string, 0, $matches[0][1]));
+			$this->post = trim(substr($string, $matches[0][1] + strlen($matches[0][0])));
+			$this->type = trim($matches[1][0]);
+
+			return true;
+		}
+		else {
+			$this->pre = $string;
+			return false;
+		}
+
+	}
+
+	// return pre string
+	public function pre() {
+		return $this->pre;
+	}
+
+	// return post string
+	public function post() {
+		return $this->post;
+	}
+
+	// return type
+	public function type() {
+		return $this->type;
+	}
+
+	public function __toString () {
+		return print_r($this, true);
+	}
+}
 
 // get data from field
 function database_field($field) {
@@ -182,7 +335,6 @@ function database_parse_fields($template, $record) {
 	// check for [ ] delete areas
 	preg_match_all("/\[([^\]]*)\]/", $template, $matches);
 
-
 	// iterate delete areas
 	if ($matches) {
 
@@ -221,19 +373,22 @@ function database_replace(&$part, $record) {
 
 	$cnt = 0;
 
-	preg_match_all("|{([a-zA-Z0-9\_\:]+)}|", $part, $matches);
+	preg_match_all("|{([a-zA-Z0-9\_\:\>\.]+)}|", $part, $matches);
 
 	if ($matches) {
 
 		$fields = $matches [1];
 
-
 		// iterate fields
 		foreach ($fields as $field) {
 
 			// parse field name for function call
-			$func = database_parse_field($field);
 
+			$fieldArray = database_parse_field($field);
+
+			$table = $fieldArray["table"];
+			$func = $fieldArray["func"];
+			$pipe = $fieldArray["pipe"];
 
 			// replace placeholder by database data
 			if (array_key_exists($field, $record)) {
@@ -247,8 +402,10 @@ function database_replace(&$part, $record) {
 
 					// convert iso date to human readable
 					case "date":
+						if($data) {
 						$data = date( "j.n.Y", strtotime($data) );
 						$field = $func.":".$field;
+						}
 						break;
 
 					// convert to year only
@@ -268,38 +425,81 @@ function database_replace(&$part, $record) {
 						if ($data == 0) $data = "";
 						$field = $func.":".$field;
 						break;
+
 				}
+
+
+				// increment counter if not empty
+				if ($data != "") {
+					$cnt++;
+				}
+				else {
+					$data = "&nbsp;";
+				}
+
+
+				// call pipe
+				switch($pipe) {
+
+					// activate edit
+					case "edit":
+//						debug($record);
+
+						$data = '<span class="" id="'.$record["id"].'" table="'.$table.'" field="'.$field.'">'.$data.'</span>';
+						$field = $table.".".$field.">".$pipe;
+						break;
+				}
+
 
 				// replace with value -> replace \n with <br>
 				$part = str_replace("{".$field."}", str_replace("\n", "<br>", $data), $part);
 
-				if ($data != "") {
-					$cnt++;
-				}
 			}
 		}
 	}
-//echo($field."# ".$cnt.": ".$func."-".$part."<br>");
 
 	return $cnt;
 }
 
 
 // parse snippet string
-// perform action, if {action:field} is found
-// return function
+//   format: {function:table.field>pipe}
+//   function and pipe are optional
+//   table.field is mandatory
+//
+//   functions alter the field data by function
+//   pipe alters the final string, i.e. adding a edit span tag
 function database_parse_field(&$field) {
 
+	$table = false;
+	$func = false;
+	$pipe = false;
+
+	// get pipe
+	$pipeArray = explode(">", $field);
+
+	if (count($pipeArray) > 1) {
+		$field = $pipeArray[0];
+		$pipe = $pipeArray[1];
+	}
+
+	// get function
 	$fieldArray = explode(":", $field);
 
 	if (count($fieldArray) > 1) {
-
+		$func = $fieldArray[0];
 		$field = $fieldArray[1];
-
-		return $fieldArray[0];
 	}
 
-	return false;
+	// get table
+	$fieldArray = explode(".", $field);
+
+	if (count($fieldArray) > 1) {
+		$table = $fieldArray[0];
+		$field = $fieldArray[1];
+	}
+
+	return ["func" => $func, "pipe" => $pipe, "table" => $table];
 }
 
 
