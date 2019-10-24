@@ -19,7 +19,7 @@ if (!defined('CMSIMPLE_XH_VERSION')) {
     exit;
 }
 
-define (DATABASE_BASE, $pth["folder"]["plugin"]);
+define (DATABASE_PLUGIN_BASE, $pth["folder"]["plugin"]);
 
 
 /*
@@ -49,7 +49,7 @@ if (function_exists('database')
 	        break;
 
         case 'plugin_main':
-            include_once(DATABASE_BASE."settings.php");
+            include_once(DATABASE_PLUGIN_BASE."settings.php");
 
             database_settings($action, $admin, $plugin);
             break;

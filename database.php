@@ -1,6 +1,7 @@
 <?php
 
 
+ 
 /* database save action */
 function database_save($action, $admin, $plugin, $get) {
 
@@ -132,7 +133,12 @@ function database_mysql_query ($query, &$result) {
 
 	$ret = false;
 //debug($query);
-	$db = new mysqli(DATABASE_SERVER,DATABASE_USER,DATABASE_PASSWORD,DATABASE_NAME);
+	$db = new mysqli(
+		database\COnfig::database_server(),
+		database\COnfig::database_user(),
+		database\COnfig::database_password(),
+		database\COnfig::database_name()
+	);
 
 	if ($db) {
 		$db->set_charset("utf8");

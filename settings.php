@@ -66,7 +66,7 @@ function database_settings($action, $admin, $plugin) {
 
 
 		// create path
-		$path = DATABASE_BASE . database_set_slash($type, true) . $file;
+		$path = DATABASE_PLUGIN_BASE . database_set_slash($type, true) . $file;
 
 
 		// file already exists => dont save
@@ -103,8 +103,8 @@ function database_settings($action, $admin, $plugin) {
 
 				$delPath = explode("_", $type)[0] . "/" . $file;
 
-				if (file_exists(DATABASE_BASE.$delPath)) {
-					unlink(DATABASE_BASE.$delPath);
+				if (file_exists(DATABASE_PLUGIN_BASE.$delPath)) {
+					unlink(DATABASE_PLUGIN_BASE.$delPath);
 				}
 
 			}
@@ -114,7 +114,7 @@ function database_settings($action, $admin, $plugin) {
 			$o .= "<p>" . $plugin_tx["database"]["description_settings"] . "</p>";
 
 			// check template path
-			if (file_exists(DATABASE_BASE.DATABASE_TEMPLATE_PATH)) {
+			if (file_exists(DATABASE_PLUGIN_BASE.DATABASE_TEMPLATE_PATH)) {
 				$o .= "<h4>" . DATABASE_TEMPLATES . "</h4>";
 				$o .= database_list_files(DATABASE_TEMPLATE_PATH);
 			}
@@ -123,7 +123,7 @@ function database_settings($action, $admin, $plugin) {
 			}
 
 			// check query path
-			if (file_exists(DATABASE_BASE.DATABASE_QUERY_PATH)) {
+			if (file_exists(DATABASE_PLUGIN_BASE.DATABASE_QUERY_PATH)) {
 				$o .= "<h4>" . DATABASE_QUERIES . "</h4>";
 				$o .= database_list_files(DATABASE_QUERY_PATH);
 			}
@@ -159,7 +159,7 @@ function database_list_files($type) {
 
 	$ret = "";
 
-	if ($handler = opendir(DATABASE_BASE . $type)) {
+	if ($handler = opendir(DATABASE_PLUGIN_BASE . $type)) {
 
 		// new file
 		$ret .= '<form method="post" action="?database" accept-charset="UTF-8">';
@@ -196,7 +196,7 @@ function database_list_files($type) {
 				}
 
 				else {
-				 	$ret .= ' <a href="?database&admin=plugin_main&action=plugin_text:' . $type . '_del|' . $file . '&normal"><img src="' . DATABASE_BASE . '/images/del.gif"></a></li>';
+				 	$ret .= ' <a href="?database&admin=plugin_main&action=plugin_text:' . $type . '_del|' . $file . '&normal"><img src="' . DATABASE_PLUGIN_BASE . '/images/del.gif"></a></li>';
 				}
 
 			}
@@ -213,7 +213,7 @@ function database_edit_data($type, $file) {
 
 	$ret = "";
 	
-	$data = file_get_contents(DATABASE_BASE . database_set_slash($type, true) . $file);
+	$data = file_get_contents(DATABASE_PLUGIN_BASE . database_set_slash($type, true) . $file);
 
 	if ($data === false) {
 		$ret .= '<div class="xh_fail">' . str_replace("%s", database_set_slash($type, true) . $file, DATABASE_FAIL_READ) . '</div>';

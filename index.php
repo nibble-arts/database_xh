@@ -6,24 +6,21 @@
 }*/
 
 
-define("DATABASE_SERVER",$plugin_cf["database"]["database_server"]);
-define("DATABASE_USER",$plugin_cf["database"]["database_user"]);
-define("DATABASE_PASSWORD",$plugin_cf["database"]["database_password"]);
-define("DATABASE_NAME",$plugin_cf["database"]["database_name"]);
-define("DATABASE_EDIT_ATTR",$plugin_cf["database"]["edit_attribute"]);
-
-define("DATABASE_EDIT_LEVEL",$plugin_cf["database"]["edit_accesslevel"]);
-
-define("DATABASE_BASE", $pth["folder"]["plugin"]);
-define("DATABASE_ROOT",$pth['folder']['base']);
-
-define("DATABASE_NOTEMPLATE", $plugin_tx["database"]["fail_notemplate"]);
-define("DATABASE_NOQUERY", $plugin_tx["database"]["fail_noquery"]);
-define("DATABASE_DBFAIL", $plugin_tx["database"]["fail_database"]);
-define("DATABASE_QUERYFAIL", $plugin_tx["database"]["fail_query"]);
+define("DATABASE_PLUGIN_BASE", $pth["folder"]["plugin"]);
 
 
-include_once(DATABASE_BASE."database.php");
+
+include_once(DATABASE_PLUGIN_BASE."database.php");
+
+
+// init class autoloader
+spl_autoload_register(function ($path) {
+
+	if ($path && strpos($path, "database\\") !== false) {
+		$path = "classes/" . str_replace("database\\", "", strtolower($path)) . ".php";
+		include_once $path; 
+	}
+});
 
 
 // check for ajax activity
@@ -33,6 +30,9 @@ if ($admin == "database_save") {
 }
 
 
+// init text and configs
+database\Config::init($plugin_cf);
+
 
 // plugin to access a mysql database
 
@@ -40,13 +40,14 @@ function database($query="", $template="", $filter="") {
 
 	global $get, $admin, $action, $database, $_SESSION, $onload, $sn, $su, $f;
 
+	$db_admin = false;
 
-	if (class_exists("ma\Access")) {
-		ma\Access::user();
+
+	if (class_exists("ma\Access") && ma\Access::user()) {
+		$db_admin = ma\Groups::user_is_in_group(ma\Access::user()->username(), database\Config::admin_group());
 	}
 
 
-	$accesslevel = 0;
 	$ret = "";
 
 	// check for reserved words
@@ -55,27 +56,24 @@ function database($query="", $template="", $filter="") {
 		// init database editing
 		case "edit":
 
-			// get accesslevel
-			if (isset($_SESSION["accesslevel"])) $accesslevel = $_SESSION["accesslevel"];
-
-			// if access, start js
-			if ($accesslevel >= DATABASE_EDIT_LEVEL) {
+			// edit access, start js
+			if ($db_admin) {
 
 				// return script include
-				$ret .= '<script type="text/javascript" src="' . DATABASE_BASE . 'script/edit.js"></script>';
+				$ret .= '<script type="text/javascript" src="' . DATABASE_PLUGIN_BASE . 'script/edit.js"></script>';
 
 				// add to onload
-				$onload .= "database.init('" . CMSIMPLE_URL . "', '" . DATABASE_EDIT_ATTR . "');";
+				$onload .= "database.init('" . CMSIMPLE_URL . "', '" . database\Config::database_edit_attr() . "');";
 			}
 			break;
 
 		case "select":
 
 			// return script include
-			$ret .= '<script type="text/javascript" src="' . DATABASE_BASE . 'script/select.js"></script>';
+			$ret .= '<script type="text/javascript" src="' . DATABASE_PLUGIN_BASE . 'script/select.js"></script>';
 
 			// add to onload
-			$onload .= "select.init('" . CMSIMPLE_URL . "', '" . DATABASE_EDIT_ATTR . "');";
+			$onload .= "select.init('" . CMSIMPLE_URL . "', '" . database\Config::database_edit_attr() . "');";
 
 
 			break;
@@ -85,24 +83,24 @@ function database($query="", $template="", $filter="") {
 		default:
 
 			// check if template is defined
-			if (file_exists(DATABASE_BASE . "templates/" . $template . ".html")) {
-				$template = file_get_contents(DATABASE_BASE . "templates/" . $template . ".html");
+			if (file_exists(DATABASE_PLUGIN_BASE . "templates/" . $template . ".html")) {
+				$template = file_get_contents(DATABASE_PLUGIN_BASE . "templates/" . $template . ".html");
 			}
 
 			// template not found error
 			else {
-				$ret .= '<div class="xh_fail">' . str_replace("%s", $template, DATABASE_NOTEMPLATE) . '</div>';
+				$ret .= '<div class="xh_fail">' . str_replace("%s", $template, database\Text::database_notemplate()) . '</div>';
 				return $ret;
 			}
 
 			// check if query is defined
-			if (file_exists(DATABASE_BASE . "queries/" . $query . ".sql")) {
-				$query = file_get_contents(DATABASE_BASE . "queries/" . $query . ".sql");
+			if (file_exists(DATABASE_PLUGIN_BASE . "queries/" . $query . ".sql")) {
+				$query = file_get_contents(DATABASE_PLUGIN_BASE . "queries/" . $query . ".sql");
 			}
 
 			// no file and no select query
 			elseif (strpos(strtolower($query), "select") === false) {
-				$ret .= "<div class='xh_fail'>" . str_replace("%s", $query, DATABASE_NOQUERY) . "</div>";
+				$ret .= "<div class='xh_fail'>" . str_replace("%s", $query, database\Text::database_noquery()) . "</div>";
 			}
 
 
@@ -157,7 +155,7 @@ debug($template);
 
 			// sql error
 			if ($error) {
-				$ret .= '<div class="xh_fail">' . str_replace("%s", $error, DATABASE_QUERYFAIL) . '</div>';
+				$ret .= '<div class="xh_fail">' . str_replace("%s", $error, database\Text::database_queryfail()) . '</div>';
 			}
 
 
@@ -189,7 +187,7 @@ debug($template);
 					}
 				}
 				else {
-//					$ret .= '<div class="xh_fail">' . str_replace("%s", DATABASE_NAME, DATABASE_DBFAIL) . '</div>';
+//					$ret .= '<div class="xh_fail">' . str_replace("%s", DATABASE_NAME, database\Text::database_dbfail()) . '</div>';
 				}
 
 				// output footer

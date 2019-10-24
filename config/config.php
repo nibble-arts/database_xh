@@ -7,4 +7,4 @@ $plugin_cf['database']['database_name']="w1142_voefa";
 $plugin_cf['database']['path_queries']="queries";
 $plugin_cf['database']['path_templates']="templates";
 $plugin_cf['database']['edit_attribute']="field";
-$plugin_cf['database']['edit_accesslevel']="5";
+$plugin_cf['database']['admin_group']="database";
